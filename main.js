@@ -1,95 +1,111 @@
 //Make global vars
-let scene, camera, renderer, sphere, mouse, raycaster, intersects;
+let scene, camera, renderer, sphere, raycaster, INTERSECTED;
+
+const mouse = new THREE.Vector2();
+
+init();
+animate();
 
 function init() {
-    scene = new THREE.Scene();
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
 
     // Go on three docs to find how 2 use func
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true});
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xf0f0f0 );
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    document.body.appendChild(renderer.domElement);
+    //Add light
+    const light = new THREE.DirectionalLight( 0xffffff, 1 );
+    light.position.set( 1, 1, 1 ).normalize();
+    scene.add( light );
 
     const geometry = new THREE.SphereGeometry( 3, 32, 32 );
 
-    const material = new THREE.MeshBasicMaterial( {color: 0x004787} );
+    const material = new THREE.MeshBasicMaterial( {color: 0xf0f016} );
     sphere = new THREE.Mesh( geometry, material );
     scene.add( sphere );
 
-    // Camera originates at same point as box geo - have to move
+    raycaster = new THREE.Raycaster();
+
+    renderer = new THREE.WebGLRenderer({ antialias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild( renderer.domElement );
+
+    // Camera originates at same point as box geo - have to move add x change to stop intercepting
     camera.position.z = 15;
-    camera.position.x = 2;
+    // camera.position.x = 5;
+
+    document.addEventListener('mousemove', onMouseMove);
+
+    window.addEventListener('resize', onWindowResize, false);
 }
 
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    renderer.render(scene, camera);
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
-// function raycast() {
-//     const raycaster = new THREE.Raycaster();
-//     const Origin = new THREE.Vector3(0,0,15);
-//     const Direction = new THREE.Vector3();
-// }
-
-raycaster = new THREE.Raycaster();
-mouse = new THREE.Vector2();
 
 function onMouseMove( event ) {
 
 	// calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
+    event.preventDefault();
 
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
+}
+
+function animate() {
+
+    requestAnimationFrame( animate );
+
+    render();
 
 }
+
 
 function render() {
 
 	// update the picking ray with the camera and mouse position
 	raycaster.setFromCamera( mouse, camera );
 
-	// calculate objects intersecting the picking ray
-	const intersects = raycaster.intersectObjects( scene.children );
+    const intersects = raycaster.intersectObjects( scene.children );
 
+    if ( intersects.length > 0 ) {
 
-	for ( let i = 0; i < intersects.length; i ++ ) {
+        if ( INTERSECTED != intersects[ 0 ].object ) {
 
-        console.log(intersects[i]);
-		intersects[ i ].object.material.color.set( 0xff0880 );
+            if ( INTERSECTED ) INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
 
-	}
+            INTERSECTED = intersects[ 0 ].object;
+            INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+            INTERSECTED.material.color.setHex( 0xff00670 );
 
-	renderer.render( scene, camera );
+        }
+
+    } else {
+
+        if ( INTERSECTED ) INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
+
+        INTERSECTED = null;
+
+    }
+
+    renderer.render( scene, camera );
+
 
 }
 
 
-window.addEventListener( 'mousemove', onMouseMove, false );
+// function findSRP() {
+//     let G1 = intersects.distance;
+//     console.log(G1);
+// }
 
-window.requestAnimationFrame(render);
-
-function findSRP() {
-    let G1 = intersects.distance;
-    console.log(G1);
-}
-
-findSRP();
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-window.addEventListener('resize', onWindowResize, false);
-
-init();
-animate();
+// findSRP();
