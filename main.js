@@ -1,10 +1,11 @@
 //Make global vars
-let scene, camera, renderer, sphere, raycaster, INTERSECTED;
+let scene, camera, renderer, sphere, raycaster, intersects, INTERSECTED, distance;
 
 const mouse = new THREE.Vector2();
 
 init();
 animate();
+// findSRP();
 
 function init() {
     container = document.createElement( 'div' );
@@ -21,9 +22,12 @@ function init() {
     light.position.set( 1, 1, 1 ).normalize();
     scene.add( light );
 
-    const geometry = new THREE.SphereGeometry( 3, 32, 32 );
+    const geometry = new THREE.SphereGeometry( 1.41, 32, 32 );
 
-    const material = new THREE.MeshBasicMaterial( {color: 0xf0f016} );
+    const material = new THREE.MeshPhongMaterial({
+        color: 0xFFFF00,    // red (can also use a CSS color string here)
+        flatShading: false,
+      });
     sphere = new THREE.Mesh( geometry, material );
     scene.add( sphere );
 
@@ -86,6 +90,20 @@ function render() {
             INTERSECTED = intersects[ 0 ].object;
             INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
             INTERSECTED.material.color.setHex( 0xff00670 );
+            console.log(intersects);
+
+            // SRP calculation
+            const {0: {distance}} = intersects;
+            let G1 = Math.pow(10,14); //kg km/s^2 - soler rad const
+            let Cr = 1+0.9; // Reflectivity
+            let areaMass = 0.0055; //m^2/kg - area to mass ratio
+
+            let aSRP = -Cr*(G1/(distance**2)*areaMass);
+
+            console.log(distance);
+            console.log(aSRP);
+
+            return distance;
 
         }
 
@@ -97,8 +115,8 @@ function render() {
 
     }
 
-    renderer.render( scene, camera );
 
+    renderer.render( scene, camera );
 
 }
 
