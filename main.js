@@ -2,6 +2,8 @@
 let scene, camera, renderer, sphere, raycaster, intersects, INTERSECTED, distance;
 
 const mouse = new THREE.Vector2();
+const dir = new THREE.Vector3(15,0,0);
+
 
 init();
 animate();
@@ -30,6 +32,7 @@ function init() {
       });
     sphere = new THREE.Mesh( geometry, material );
     scene.add( sphere );
+    sphere.position.x = 10; //remove from origin
 
     raycaster = new THREE.Raycaster();
 
@@ -41,6 +44,10 @@ function init() {
     // Camera originates at same point as box geo - have to move add x change to stop intercepting
     camera.position.z = 15;
     // camera.position.x = 5;
+
+    // axis red-x, green-Y, blue-z
+    // const axesHelper = new THREE.AxesHelper( 5 );
+    // scene.add( axesHelper );
 
     document.addEventListener('mousemove', onMouseMove);
 
@@ -90,7 +97,7 @@ function render() {
             INTERSECTED = intersects[ 0 ].object;
             INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
             INTERSECTED.material.color.setHex( 0xff00670 );
-            console.log(intersects);
+            // console.log(intersects);
 
             // SRP calculation
             const {0: {distance}} = intersects;
@@ -100,10 +107,8 @@ function render() {
 
             let aSRP = -Cr*(G1/(distance**2)*areaMass);
 
-            console.log(distance);
             console.log(aSRP);
-
-            return distance;
+            console.log(distance);
 
         }
 
@@ -112,7 +117,7 @@ function render() {
         if ( INTERSECTED ) INTERSECTED.material.color.setHex( INTERSECTED.currentHex );
 
         INTERSECTED = null;
-
+raycaster
     }
 
 
